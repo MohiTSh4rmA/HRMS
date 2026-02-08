@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const API = "http://127.0.0.1:8000";
+const API = "https://hrms-lite-backend-8mbb.onrender.com";
 
 function EmployeeForm() {
   const [form, setForm] = useState({
