@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
-
-const API = "https://hrms-lite-backend-8mbb.onrender.com";
-
+import API from "./api";
 
 function DashboardStats() {
   const [count, setCount] = useState(0);
@@ -12,14 +10,7 @@ function DashboardStats() {
       .then((data) => setCount(data.length));
   }, []);
 
-  return (
-    <div style={{ display: "flex", gap: "20px" }}>
-      <div className="stat-card">
-        <h2>{count}</h2>
-        <p>Total Employees</p>
-      </div>
-    </div>
-  );
+  return <h3>Total Employees: {count}</h3>;
 }
 
 export default DashboardStats;
