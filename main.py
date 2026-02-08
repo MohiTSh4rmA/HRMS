@@ -1,79 +1,102 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from database import Base, engine, SessionLocal
-import models, schemas
+from pydantic import BaseModel, EmailStr
+from typing import List
+from datetime import date
 
-Base.metadata.create_all(bind=engine)
+app = FastAPI()
 
-app = FastAPI(title="HRMS Lite API")
-
+# =======================
+# CORS CONFIG (FINAL FIX)
+# =======================
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000"
+        "https://hrms-frontend-bzhb.onrender.com"
     ],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-@app.post("/employees")
-def add_employee(employee: schemas.EmployeeCreate):
-    db = SessionLocal()
-
-    existing = db.query(models.Employee).filter(
-        models.Employee.employee_id == employee.employee_id
-    ).first()
-
-    if existing:
-        raise HTTPException(status_code=400, detail="Employee already exists")
-
-    new_emp = models.Employee(**employee.dict())
-    db.add(new_emp)
-    db.commit()
-
-    return {"message": "Employee added successfully"}
+# =======================
+# MODELS (IN-MEMORY)
+# =======================
+class Employee(BaseModel):
+    id: int
+    employee_id: str
+    name: str
+    email: EmailStr
+    department: str
 
 
-@app.get("/employees")
+class EmployeeCreate(BaseModel):
+    employee_id: str
+    name: str
+    email: EmailStr
+    department: str
+
+
+class Attendance(BaseModel):
+    employee_id: str
+    status: str
+    date: date | None = None
+
+
+# =======================
+# FAKE DATABASE
+# =======================
+employees: List[Employee] = []
+attendance_records: List[dict] = []
+
+# =======================
+# ROUTES
+# =======================
+
+@app.get("/")
+def root():
+    return {"message": "HRMS Backend is running"}
+
+
+@app.get("/employees", response_model=List[Employee])
 def get_employees():
-    db = SessionLocal()
-    return db.query(models.Employee).all()
+    return employees
 
 
-@app.delete("/employees/{employee_id}")
-def delete_employee(employee_id: str):
-    db = SessionLocal()
+@app.post("/employees", response_model=Employee)
+def add_employee(emp: EmployeeCreate):
+    for e in employees:
+        if e.employee_id == emp.employee_id:
+            raise HTTPException(status_code=400, detail="Employee already exists")
 
-    emp = db.query(models.Employee).filter(
-        models.Employee.employee_id == employee_id
-    ).first()
+    new_emp = Employee(
+        id=len(employees) + 1,
+        employee_id=emp.employee_id,
+        name=emp.name,
+        email=emp.email,
+        department=emp.department,
+    )
+    employees.append(new_emp)
+    return new_emp
 
-    if not emp:
-        raise HTTPException(status_code=404, detail="Employee not found")
 
-    db.delete(emp)
-    db.commit()
-
-    return {"message": "Employee deleted successfully"}
+@app.delete("/employees/{emp_id}")
+def delete_employee(emp_id: int):
+    global employees
+    employees = [e for e in employees if e.id != emp_id]
+    return {"message": "Employee deleted"}
 
 
 @app.post("/attendance")
-def mark_attendance(attendance: schemas.AttendanceCreate):
-    db = SessionLocal()
+def mark_attendance(att: Attendance):
+    attendance_records.append({
+        "employee_id": att.employee_id,
+        "status": att.status,
+        "date": att.date or date.today()
+    })
+    return {"message": "Attendance marked"}
 
-    record = models.Attendance(**attendance.dict())
-    db.add(record)
-    db.commit()
 
-    return {"message": "Attendance marked successfully"}
-
-
-@app.get("/attendance/{employee_id}")
-def get_attendance(employee_id: str):
-    db = SessionLocal()
-    return db.query(models.Attendance).filter(
-        models.Attendance.employee_id == employee_id
-    ).all()
+@app.get("/attendance")
+def get_attendance():
+    return attendance_records
