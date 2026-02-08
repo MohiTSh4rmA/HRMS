@@ -7,20 +7,18 @@ from datetime import date
 app = FastAPI()
 
 # =======================
-# CORS CONFIG (FINAL FIX)
+# CORS (FINAL SAFE FIX)
 # =======================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://hrms-frontend-bzhb.onrender.com"
-    ],
-    allow_credentials=False,
+    allow_origins=["*"],          # allow all origins
+    allow_credentials=False,      # MUST be False with "*"
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # =======================
-# MODELS (IN-MEMORY)
+# MODELS
 # =======================
 class Employee(BaseModel):
     id: int
@@ -44,18 +42,18 @@ class Attendance(BaseModel):
 
 
 # =======================
-# FAKE DATABASE
+# IN-MEMORY DATA
 # =======================
 employees: List[Employee] = []
 attendance_records: List[dict] = []
 
+
 # =======================
 # ROUTES
 # =======================
-
 @app.get("/")
 def root():
-    return {"message": "HRMS Backend is running"}
+    return {"message": "HRMS Backend Running"}
 
 
 @app.get("/employees", response_model=List[Employee])
