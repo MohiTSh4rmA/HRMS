@@ -1,84 +1,44 @@
-import React, { useEffect, useState } from "react";
-
-const API = "https://hrms-lite-backend-8mbb.onrender.com";
-
+import React, { useState } from "react";
+import API from "./api";
 
 function Attendance() {
-  const [employees, setEmployees] = useState([]);
-  const [form, setForm] = useState({
+  const [data, setData] = useState({
     employee_id: "",
-    date: "",
     status: "Present",
   });
-  const [records, setRecords] = useState([]);
 
-  useEffect(() => {
-    fetch(`${API}/employees`)
-      .then((res) => res.json())
-      .then(setEmployees);
-  }, []);
+  const submit = (e) => {
+    e.preventDefault();
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const markAttendance = async () => {
-    if (!form.employee_id || !form.date) {
-      alert("Please select employee and date");
-      return;
-    }
-
-    await fetch(`${API}/attendance`, {
+    fetch(`${API}/attendance`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(data),
+    }).then(() => {
+      setData({ employee_id: "", status: "Present" });
     });
-
-    alert("Attendance marked");
-    loadAttendance(form.employee_id);
-  };
-
-  const loadAttendance = async (empId) => {
-    const res = await fetch(`${API}/attendance/${empId}`);
-    const data = await res.json();
-    setRecords(data);
   };
 
   return (
-    <>
-      <h3>Attendance Management</h3>
-
-      <select name="employee_id" onChange={handleChange}>
-        <option value="">Select Employee</option>
-        {employees.map((e) => (
-          <option key={e.employee_id} value={e.employee_id}>
-            {e.name}
-          </option>
-        ))}
+    <form onSubmit={submit}>
+      <h2>Mark Attendance</h2>
+      <input
+        placeholder="Employee ID"
+        value={data.employee_id}
+        onChange={(e) =>
+          setData({ ...data, employee_id: e.target.value })
+        }
+        required
+      />
+      <select
+        value={data.status}
+        onChange={(e) => setData({ ...data, status: e.target.value })}
+      >
+        <option>Present</option>
+        <option>Absent</option>
       </select>
-
-      <input type="date" name="date" onChange={handleChange} />
-
-      <select name="status" onChange={handleChange}>
-        <option value="Present">Present</option>
-        <option value="Absent">Absent</option>
-      </select>
-
-      <button onClick={markAttendance}>Mark Attendance</button>
-
-      {records.length > 0 && (
-        <>
-          <h4 style={{ marginTop: "20px" }}>Attendance Records</h4>
-          {records.map((r, i) => (
-            <div key={i} className="employee-row">
-              <span>
-                {r.date} — {r.status}
-              </span>
-            </div>
-          ))}
-        </>
-      )}
-    </>
+      <button type="submit">Submit</button>
+    </form>
   );
 }
 
