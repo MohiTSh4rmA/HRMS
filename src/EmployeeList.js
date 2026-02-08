@@ -1,50 +1,40 @@
-import API from "./api";
 import React, { useEffect, useState } from "react";
-
-const API = "https://hrms-lite-backend-8mbb.onrender.com";
+import API from "./api";
 
 function EmployeeList() {
   const [employees, setEmployees] = useState([]);
+  const [error, setError] = useState("");
 
   const loadEmployees = () => {
     fetch(`${API}/employees`)
       .then((res) => res.json())
-      .then(setEmployees);
+      .then((data) => setEmployees(data))
+      .catch(() => setError("Backend not reachable"));
   };
 
   useEffect(() => {
     loadEmployees();
   }, []);
 
-  const deleteEmployee = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this employee?")) return;
-
-    await fetch(`${API}/employees/${id}`, {
+  const deleteEmployee = (id) => {
+    fetch(`${API}/employees/${id}`, {
       method: "DELETE",
-    });
-
-    loadEmployees();
+    }).then(loadEmployees);
   };
 
   return (
-    <>
-      <h3>Employee List</h3>
-
-      {employees.length === 0 && (
-        <p className="empty">No employees added yet.</p>
-      )}
-
-      {employees.map((e) => (
-        <div className="employee-row" key={e.employee_id}>
-          <span>
-            <strong>{e.name}</strong> — {e.department}
-          </span>
-          <button onClick={() => deleteEmployee(e.employee_id)}>
-            Delete
-          </button>
-        </div>
-      ))}
-    </>
+    <div>
+      <h2>Employees</h2>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      <ul>
+        {employees.map((emp) => (
+          <li key={emp.id}>
+            {emp.name} ({emp.employee_id}) - {emp.department}
+            <button onClick={() => deleteEmployee(emp.id)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
