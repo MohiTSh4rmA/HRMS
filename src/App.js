@@ -1,25 +1,40 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import EmployeeForm from "./EmployeeForm";
+import EmployeeList from "./EmployeeList";
+import Attendance from "./Attendance";
+import DashboardStats from "./DashboardStats";
+import "./styles.css";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="container">
+      {/* Header */}
+      <div className="header">
+        <h1>HRMS Lite – Admin Dashboard</h1>
+      </div>
+
+      {/* Dashboard Stats */}
+      <div style={{ marginBottom: "30px" }}>
+        <DashboardStats />
+      </div>
+
+      {/* Add Employee */}
+      <div className="card">
+        <EmployeeForm />
+      </div>
+
+      {/* Employee List */}
+      <div className="card">
+        <EmployeeList />
+      </div>
+
+      {/* Attendance Management */}
+      <div className="card">
+        <Attendance />
+      </div>
     </div>
   );
 }
+
 
 export default App;
