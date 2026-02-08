@@ -1,77 +1,69 @@
 import React, { useState } from "react";
+import API from "./api";
 
-const API = "https://hrms-lite-backend-8mbb.onrender.com";
-
-function EmployeeForm() {
-  const [form, setForm] = useState({
+function EmployeeForm({ onAdd }) {
+  const [formData, setFormData] = useState({
     employee_id: "",
     name: "",
     email: "",
     department: "",
   });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const submit = (e) => {
+    e.preventDefault();
 
-  const submit = async () => {
-  try {
-    const res = await fetch(`${API}/employees`, {
+    fetch(`${API}/employees`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(formData),
+    }).then(() => {
+      setFormData({
+        employee_id: "",
+        name: "",
+        email: "",
+        department: "",
+      });
+      onAdd();
     });
-
-    if (!res.ok) {
-      const err = await res.text();
-      alert("Backend error: " + err);
-      return;
-    }
-
-    alert("Employee Added");
-    window.location.reload();
-  } catch (e) {
-    alert("Network error: Backend not reachable");
-    console.error(e);
-  }
-};
-
+  };
 
   return (
-  <>
-    <h3>Add Employee</h3>
-
-    <input
-      name="employee_id"
-      placeholder="Employee ID"
-      onChange={handleChange}
-    />
-
-    <input
-      name="name"
-      placeholder="Full Name"
-      onChange={handleChange}
-    />
-
-    <input
-      name="email"
-      placeholder="Email Address"
-      onChange={handleChange}
-    />
-
-    <input
-      name="department"
-      placeholder="Department"
-      onChange={handleChange}
-    />
-    <p style={{ fontSize: "13px", color: "#555" }}>
-  Please ensure employee ID and email are unique.
-</p>
-
-    <button onClick={submit}>Add Employee</button>
-  </>
-);
-
+    <form onSubmit={submit}>
+      <input
+        placeholder="Employee ID"
+        value={formData.employee_id}
+        onChange={(e) =>
+          setFormData({ ...formData, employee_id: e.target.value })
+        }
+        required
+      />
+      <input
+        placeholder="Name"
+        value={formData.name}
+        onChange={(e) =>
+          setFormData({ ...formData, name: e.target.value })
+        }
+        required
+      />
+      <input
+        placeholder="Email"
+        value={formData.email}
+        onChange={(e) =>
+          setFormData({ ...formData, email: e.target.value })
+        }
+        required
+      />
+      <input
+        placeholder="Department"
+        value={formData.department}
+        onChange={(e) =>
+          setFormData({ ...formData, department: e.target.value })
+        }
+        required
+      />
+      <button type="submit">Add Employee</button>
+    </form>
+  );
 }
 
 export default EmployeeForm;
